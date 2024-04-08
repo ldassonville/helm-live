@@ -1,0 +1,36 @@
+<div class="playground">
+  <div class="menu-wrapper">
+    <h3>Values</h3>
+    <ul>
+      <li (click)="onSelectValues('mergedValues')">Merged values</li>
+    </ul>
+
+    <h3>Manifests</h3>
+    <ul>
+      @for (manifest of render.manifests; track manifest.name) {
+        <li (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)">
+          {{manifest.name}} <span class="kind">{{manifest.kind}}</span>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="render-wrapper">
+    @if (render && render.errors && render.errors.length > 0){
+      <div class="errors">
+        <h3>Errors</h3>
+        <ul>
+          @for (error of render.errors; track error){
+            <li>{{error.message}}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    <ngx-monaco-editor class="render-editor" [options]="editorOptions"   [(ngModel)]="content" ></ngx-monaco-editor>
+  </div>
+</div>
+
+
+
+
