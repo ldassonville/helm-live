@@ -1,0 +1,30 @@
+.header{
+  height: 55px;
+  padding: 15px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #e0e0e0;
+  .logo{
+    font-weight: 500;
+    font-size: 1.3rem;
+
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+    span{
+      font-weight: 600;
+      padding-right: 5px;
+    }
+
+    &::before{
+      background-image: url("../assets/helm.svg");
+      content: "";
+      display: inline-block;
+      height: 25px;
+      width: 25px;
+      background-size: 25px 25px;
+      background-repeat: no-repeat;
+      margin-right: 0.5rem;
+    }
+  }
+}

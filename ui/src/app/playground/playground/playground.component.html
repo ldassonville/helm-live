@@ -5,20 +5,31 @@
       <li (click)="onSelectValues('mergedValues')">Merged values</li>
     </ul>
 
-    <h3>Manifests</h3>
-    <ul>
-      @for (manifest of render.manifests; track manifest.name) {
-        <li (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)">
-          {{manifest.name}} <span class="kind">{{manifest.kind}}</span>
-        </li>
-      }
-    </ul>
+    @if (render.sources && render.sources.length > 0) {
+      <h3>Manifests</h3>
+      <ul>
+        @for( source of render.sources; track source) {
+          <div class="source">{{source.source}}</div>
+          @for (manifest of source.manifests; track manifest.name) {
+            <li (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)" [class.yaml-error]="!manifest.isYamlValid" class="kubeconform-{{manifest.kubeConformValidation?.status}}">
+              <span class="manifest-name">{{manifest.name}}</span> <span class="kind">{{manifest.kind}}</span>
+            </li>
+          }
+        }
+
+      </ul>
+
+      <h3>Debug</h3>
+      <ul>
+        <li (click)="onSelectRawManifest()">Raw Manifests</li>
+      </ul>
+    }
   </div>
 
   <div class="render-wrapper">
     @if (render && render.errors && render.errors.length > 0){
       <div class="errors">
-        <h3>Errors</h3>
+        <h3>Helm Errors</h3>
         <ul>
           @for (error of render.errors; track error){
             <li>{{error.message}}</li>
@@ -27,7 +38,23 @@
       </div>
     }
 
-    <ngx-monaco-editor class="render-editor" [options]="editorOptions"   [(ngModel)]="content" ></ngx-monaco-editor>
+    @if (kubeConformValidation && kubeConformValidation.status != "valid"){
+      <div class="errors">
+        <h3>kubeConform Validation ({{kubeConformValidation.status}})</h3>
+        <ul>
+
+          @if (kubeConformValidation.errMsg){
+            <li>{{kubeConformValidation.errMsg}}</li>
+          }
+          @for (error of kubeConformValidation.validationErrors; track error){
+            <li>{{error.msg}}
+                {{error.path}}
+            </li>
+          }
+        </ul>
+      </div>
+    }
+    <ngx-monaco-editor class="render-editor" [options]="editorOptions" (onInit)="onEditorInit($event)"  [(ngModel)]="content" ></ngx-monaco-editor>
   </div>
 </div>
 

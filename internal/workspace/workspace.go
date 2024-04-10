@@ -21,7 +21,6 @@ func (w *Workspace) Live() {
 	}
 
 	go func() {
-
 		for {
 			select {
 			case event, ok := <-watcher.Events:

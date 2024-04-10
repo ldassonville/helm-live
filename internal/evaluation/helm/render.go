@@ -1,42 +1,35 @@
 package helm
 
-func NewRenderBuilder() *renderBuilder {
-	return &renderBuilder{
-		render: &Render{},
-	}
+type GroupVersionKind struct {
+	Group   string `json:"group"`
+	Version string `json:"version"`
+	Kind    string `json:"kind"`
 }
 
-type renderBuilder struct {
-	render *Render
+type Manifest struct {
+	GroupVersionKind `json:",inline"`
+	Name             string `json:"name,omitempty"`
+	Namespace        string `json:"manifest,omitempty"`
+	Content          string `json:"content,omitempty"`
+
+	// KubeConformValidation result
+	KubeConformValidation *KubeConformValidation `json:"kubeConformValidation,omitempty"`
+
+	IsYamlValid bool   `json:"isYamlValid"`
+	YamlError   string `json:"yamlError,omitempty"`
 }
 
-func (rb *renderBuilder) Build() *Render {
-	return rb.render
+type KubeConformValidation struct {
+	Status           string            `json:"status,omitempty"`
+	ErrMsg           string            `json:"errMsg,omitempty"`
+	ValidationErrors []ValidationError `json:"validationErrors,omitempty"`
 }
 
-func (rb *renderBuilder) AddError(err error) *renderBuilder {
-	rb.render.Errors = append(rb.render.Errors, &RenderError{Message: err.Error()})
-	return rb
+type ValidationError struct {
+	Path string `json:"path"`
+	Msg  string `json:"msg"`
 }
 
-func (rb *renderBuilder) SetStatus(status string) *renderBuilder {
-	rb.render.Status = status
-	return rb
-}
-
-func (rb *renderBuilder) AddRenderError(err *RenderError) *renderBuilder {
-	rb.render.Errors = append(rb.render.Errors, err)
-	return rb
-}
-
-func (rb *renderBuilder) AddManifests(manifests []*Manifest) *renderBuilder {
-	rb.render.Manifests = append(rb.render.Manifests, manifests...)
-	return rb
-}
-
-func (rb *renderBuilder) SetMergedValues(values string) {
-
-	rb.render.MergedValues = &Values{
-		Data: values,
-	}
+type RenderError struct {
+	Message string `json:"message,omitempty"`
 }

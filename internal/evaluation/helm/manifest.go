@@ -1,15 +1,47 @@
 package helm
 
 import (
-	"github.com/ldassonville/helm-playground/internal/evaluation/utils"
-	"github.com/ldassonville/helm-playground/internal/evaluation/utils/pseudoyaml"
+	"github.com/ldassonville/helm-live/internal/evaluation/utils"
+	"github.com/ldassonville/helm-live/internal/evaluation/utils/pseudoyaml"
 	"github.com/rs/zerolog/log"
 	"strings"
 )
 
 const yamlSeparator = "---\n"
 
-func LoadYAMLManifests(data string) ([]*Manifest, error) {
+const helmSourceSeparator = "---\n# Source: "
+
+func LoadHelmYAMLManifests(data string) []*SourceFile {
+
+	var res []*SourceFile
+	sourceIndex := make(map[string]*SourceFile)
+	strSources := strings.Split(data, helmSourceSeparator)
+
+	for _, strSource := range strSources {
+
+		parts := strings.SplitN(strSource, "\n", 2)
+		if len(parts) >= 2 {
+
+			sourcePath := parts[0]
+			yamlData := parts[1]
+			var src = sourceIndex[sourcePath]
+
+			// If source not found, create a new one
+			if src == nil {
+				src = &SourceFile{
+					Source: sourcePath,
+				}
+				sourceIndex[sourcePath] = src
+				res = append(res, src)
+			}
+
+			src.Manifests = append(src.Manifests, loadYAMLManifests(yamlData)...)
+		}
+	}
+	return res
+}
+
+func loadYAMLManifests(data string) []*Manifest {
 
 	var res []*Manifest
 	strManifests := strings.Split(data, yamlSeparator)
@@ -17,29 +49,32 @@ func LoadYAMLManifests(data string) ([]*Manifest, error) {
 	for _, strManifest := range strManifests {
 		m := &Manifest{}
 
+		// Skip empty content
 		if strings.TrimSpace(strManifest) == "" {
 			continue
 		}
 
-		if err := LoadYAMLManifest(strManifest, m); err == nil {
+		if err := loadYAMLManifest(strManifest, m); err != nil {
 			log.Err(err).Msgf("fail to parse : %s", strManifest)
+			m.YamlError = err.Error()
 		}
 		res = append(res, m)
 	}
-	return res, nil
+	return res
 }
 
-func LoadYAMLManifest(data string, m *Manifest) error {
+func loadYAMLManifest(data string, m *Manifest) error {
 
 	manifestMeta := &utils.ManifestMeta{}
 
+	m.IsYamlValid = true
 	err := utils.UnmarshalYamlManifest([]byte(data), manifestMeta)
 	if err != nil {
 		m.Name = pseudoyaml.LookupFirstMatch([]string{"metadata", "name"}, data)
 		if m.Name == "" {
 			m.Name = "name not found"
 		}
-		m.YamlValid = true
+		m.IsYamlValid = false
 		m.Content = data
 		m.GroupVersionKind = GroupVersionKind{
 			Kind:    pseudoyaml.LookupFirstMatch([]string{"kind"}, data),
@@ -52,8 +87,6 @@ func LoadYAMLManifest(data string, m *Manifest) error {
 	m.Content = data
 	m.Namespace = manifestMeta.Namespace
 	m.Name = manifestMeta.Name
-
-	//TODO : Yaml error
 
 	m.GroupVersionKind = GroupVersionKind{
 		Kind:    manifestMeta.Kind,

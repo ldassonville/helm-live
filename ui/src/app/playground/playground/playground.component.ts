@@ -1,10 +1,9 @@
 import { Component} from '@angular/core';
-import {HelmRender} from "../render";
+import {HelmRender, KubeConformValidation, Manifest, ValidationError} from "../render";
 import {RenderService} from "../render.service";
 import { JsonPipe} from "@angular/common";
 import {MonacoEditorModule, NGX_MONACO_EDITOR_CONFIG} from "ngx-monaco-editor-v2";
 import {FormsModule} from "@angular/forms";
-
 
 @Component({
   selector: 'app-playground',
@@ -20,10 +19,12 @@ import {FormsModule} from "@angular/forms";
 })
 export class PlaygroundComponent{
 
-  public render: HelmRender = {}
+  public render: HelmRender = {info: {}}
 
-  protected editorOptions = {theme: 'vs', language: 'yaml', fontSize: 13.5, automaticLayout: true};
+  protected kubeConformValidation : KubeConformValidation|null = null
+  protected editorOptions = {theme: 'vs', language: 'yaml', fontSize: 13.5, automaticLayout: true, readOnly: true};
   protected content = ""
+  protected editor: any
 
   protected selection = {
     category: "values",
@@ -31,6 +32,11 @@ export class PlaygroundComponent{
   }
 
   constructor( private renderService: RenderService) {
+
+    this.renderService.render().subscribe(render => {
+      this.render = render;
+    })
+
     this.renderService.
       live().
       subscribe(render => {
@@ -39,12 +45,30 @@ export class PlaygroundComponent{
     });
   }
 
+  onEditorInit(editor: any) {
+    this.editor = editor
+  }
+
+  onSelectRawManifest() {
+    this.selection = {
+      category: "rawManifest",
+      identity: "rawManifest"
+    }
+    this.selectItem(this.selection.category, this.selection.identity)
+  }
+
+
   onSelectManifest(group: string, kind: string, version: string, name: string) {
 
     this.selection = {
       category: "manifests",
       identity: `${group}-${kind}-${version}-${name}`
     }
+    if(this.editor){
+      this.editor.setScrollPosition({scrollTop: 0});
+      //editor.revealLine(15);
+    }
+
     this.selectItem(this.selection.category, this.selection.identity)
   }
 
@@ -57,12 +81,19 @@ export class PlaygroundComponent{
   }
 
   selectManifestByIdentifier(identifier: string) {
-    console.log("selectManifestByIdentifier", identifier)
-    if(this.render.manifests){
-      const foundManifest = this.render.manifests?.find(manifest => {
-        return <string>`${manifest.group}-${manifest.kind}-${manifest.version}-${manifest.name}` === identifier
-      })
+
+    if(this.render.sources){
+      let foundManifest: any = undefined
+      for (let source of this.render.sources) {
+        foundManifest = source.manifests?.find(manifest => {
+          return <string>`${manifest.group}-${manifest.kind}-${manifest.version}-${manifest.name}` === identifier
+        })
+        if(foundManifest){
+          break
+        }
+      }
       this.content = foundManifest?.content || ""
+      this.kubeConformValidation = foundManifest?.kubeConformValidation || null
     }else {
       this.content = ""
     }
@@ -71,8 +102,11 @@ export class PlaygroundComponent{
 
 
   selectItem(category: string, identifier: string) {
-
+    this.kubeConformValidation = null
     switch (category) {
+      case "rawManifest":
+        this.content = this.render.rawManifest || ""
+        break;
       case "manifests":
         this.selectManifestByIdentifier(identifier)
         break;

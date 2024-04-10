@@ -7,8 +7,14 @@
     background-color: #fbecec;
     color: #c23f34;
     padding: 3px 30px;
+
+    h3{
+      margin: 10px 0;
+      font-size: 1rem;
+    }
     ul{
       padding: 0;
+      margin: 10px 0px;
       list-style: none;
       li{
         white-space: pre-line;
@@ -18,13 +24,37 @@
   .render-wrapper {
     flex: 1;
     padding: 10px;
+
+    height: calc(100vh - 85px);
+    overflow: hidden;
   }
 
   .menu-wrapper{
+    scrollbar-width: none;
     min-width: 335px;
     padding: 15px;
     border-right: 1px solid #e0e0e0;
     background-color: #f9fbff;
+    height: calc(100vh - 85px);
+    overflow: auto;
+
+    .source{
+      margin: 7px 0px 10px 0;
+
+      &::before{
+        //content: "> ";
+        background-image: url("../../../assets/folder.svg");
+        //font-weight: bold;
+        content: "";
+        display: inline-block;
+        height: 15px;
+        width: 15px;
+        background-size: 15px 15px;
+        background-repeat: no-repeat;
+        margin-right: 0.12rem;
+      }
+    }
+
     ul{
       list-style: none;
       padding: 0;
@@ -36,6 +66,59 @@
 
         .kind{
           font-weight: bold;
+          float:right;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+        }
+
+
+        span::before {
+          content: "";
+          display: inline-block;
+          height: 15px;
+          width: 15px;
+          background-size: 15px 15px;
+          background-repeat: no-repeat;
+          margin-right: 0.12rem;
+
+
+        }
+
+        span.manifest-name{
+          margin-top: 5px ;
+          margin-left: 10px;
+        }
+
+        span.manifest-name::before {
+          background-image: url("../../../assets/file.svg");
+        }
+
+        &.kubeconform-valid{
+          span.kind::before {
+            background-image: url("../../../assets/valid-light.svg");
+          }
+        }
+
+        &.kubeconform-invalid{
+          span.kind::before {
+            background-image: url("../../../assets/verified-error.svg");
+          }
+        }
+        &.kubeconform-error{
+          span.kind::before {
+            background-image: url("../../../assets/verified-error.svg");
+          }
+        }
+
+        &.yaml-error{
+          span.kind::before {
+            background-image: url("../../../assets/manifest-error.svg");
+          }
+        }
+
+        &.active{
+          background-color: #e8f0fe;
         }
       }
     }

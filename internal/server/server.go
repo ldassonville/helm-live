@@ -1,12 +1,19 @@
 package server
 
 import (
+	"embed"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/ldassonville/helm-playground/internal/evaluation/helm"
+	"github.com/ldassonville/helm-live/internal/evaluation/helm"
 	"io"
+	"io/fs"
 	"log"
+	"net/http"
 )
+
+//go:generate cp -r ../../ui/dist/helm-live/browser ./static
+//go:embed static/*
+var staticAssets embed.FS
 
 // It keeps a list of clients those are currently attached
 // and broadcasting events to those clients.
@@ -27,20 +34,17 @@ type Event struct {
 // New event messages are broadcast to all registered client connection channels
 type ClientChan chan string
 
-func RunServer(stream *Event) {
+func RunServer(stream *Event, renderFnc func() *helm.Render, staticPath string) {
+
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	// Basic Authentication
 	authorized := router.Group("/")
 	authorized.Use(cors.Default())
 
-	authorized.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, helm.Render{
-			Values: &helm.Values{
-
-				Data: "ping",
-			},
-		})
+	authorized.GET("/_render", func(c *gin.Context) {
+		c.JSON(200, renderFnc())
 	})
 
 	// Authorized client can stream the event
@@ -64,8 +68,9 @@ func RunServer(stream *Event) {
 		})
 	})
 
+	subFS, _ := fs.Sub(staticAssets, "static")
 	// Parse Static files
-	router.StaticFile("/", "./public/index.html")
+	router.StaticFS("/ui", http.FS(subFS))
 
 	router.Run(":8085")
 
