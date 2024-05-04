@@ -9,14 +9,21 @@
       <h3>Manifests</h3>
       <ul>
         @for( source of render.sources; track source) {
-          <div class="source">{{source.source}}</div>
-          @for (manifest of source.manifests; track manifest.name) {
-            <li (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)" [class.yaml-error]="!manifest.isYamlValid" class="kubeconform-{{manifest.kubeConformValidation?.status}}">
+          <div (click)="onSelectSource(source.source)" 
+              [class.active]="isSelectedSource(source.source)"
+              class="source">{{source.source}}
+          </div>
+          @if( isSelectedSource(source.source)){
+            @for (manifest of source.manifests; track manifest.name) {
+            <li (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)" 
+                [class.yaml-error]="!manifest.isYamlValid" 
+                [class.active]="isSelectedManifest(manifest.group, manifest.kind, manifest.version, manifest.name)"
+                class="kubeconform-{{manifest.kubeConformValidation?.status}}">
               <span class="manifest-name">{{manifest.name}}</span> <span class="kind">{{manifest.kind}}</span>
             </li>
+            }
           }
         }
-
       </ul>
 
       <h3>Debug</h3>
