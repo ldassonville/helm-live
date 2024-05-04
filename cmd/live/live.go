@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/ldassonville/helm-live/internal/evaluation/helm"
 	"github.com/ldassonville/helm-live/internal/server"
 	"github.com/ldassonville/helm-live/internal/workspace"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
@@ -20,6 +21,7 @@ var (
 )
 
 func main() {
+
 	Execute()
 }
 
@@ -28,6 +30,7 @@ const (
 	pSchemaPath = "schema-path"
 	pValueFile  = "value-file"
 	pStaticPath = "static-path"
+	pPort       = "port"
 )
 
 func init() {
@@ -53,7 +56,7 @@ func isSchemaPathValid(path string) bool {
 func isValuePathValid(valueFile string) bool {
 	_, error := os.Stat(valueFile)
 	if os.IsNotExist(error) {
-		fmt.Println(fmt.Sprintf("Values file %s does not exist", valueFile))
+		log.Error().Msgf("Values file %s does not exist", valueFile)
 		return false
 	}
 	return true
@@ -62,7 +65,7 @@ func isValuePathValid(valueFile string) bool {
 func isChartPathValid(path string) bool {
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		fmt.Println(fmt.Sprintf("Chart directory %s does not exist", path))
+		log.Error().Msgf("Chart directory %s does not exist", path)
 		return false
 	}
 
@@ -70,16 +73,19 @@ func isChartPathValid(path string) bool {
 		// check if the directory contains a Chart.yaml file
 		_, err = os.Stat(filepath.Join(path, "Chart.yaml"))
 		if os.IsNotExist(err) {
+			log.Error().Err(err).Msgf("Invalid chart directory %s. Missing Chart.yaml", path)
 			return false
 		}
 
 		// check if the templates directory exists
 		infoManifest, err := os.Stat(filepath.Join(path, "templates"))
 		if os.IsNotExist(err) {
+			log.Error().Err(err).Msgf("Invalid chart directory %s. Missing templates directory", path)
 			return false
 		}
 		// check if the templates is a directory
 		if !infoManifest.IsDir() {
+			log.Error().Err(err).Msgf("Invalid chart directory %s. Manifests is not a directory", path)
 			return false
 		}
 	}
@@ -113,7 +119,13 @@ func getRootCmd() *cobra.Command {
 			}
 
 			_ = viper.BindPFlag(pStaticPath, cmd.Flags().Lookup(pStaticPath))
-			staticPath := getAbsolutePath(viper.GetString(pStaticPath))
+			staticPath := viper.GetString(pStaticPath)
+			if staticPath != "" {
+				staticPath = getAbsolutePath(staticPath)
+			}
+
+			_ = viper.BindPFlag(pPort, cmd.Flags().Lookup(pPort))
+			port := viper.GetInt(pPort)
 
 			wks := &workspace.Workspace{
 				Path: chartPath,
@@ -132,7 +144,7 @@ func getRootCmd() *cobra.Command {
 
 			go server.RunServer(httpServer, func() *helm.Render {
 				return renderer.Render(context.Background(), renderConfig)
-			}, staticPath)
+			}, staticPath, port)
 
 			wks.OnChangeFnc = func() {
 				render := renderer.Render(context.Background(), renderConfig)
@@ -144,17 +156,20 @@ func getRootCmd() *cobra.Command {
 		},
 	}
 
-	rootCmd.Flags().String(pSchemaPath, "./catalog-crds-json-schema/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json", "schemas path ")
-	rootCmd.Flags().String(pChartPath, ".", "Chart path")
-	rootCmd.Flags().String(pValueFile, "./values-example.yaml", "values files")
-	rootCmd.Flags().String(pStaticPath, "./statics", "statics path files")
-
+	rootCmd.Flags().StringP(pSchemaPath, "s", "./catalog-crds-json-schema/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json", "schemas path ")
+	rootCmd.Flags().StringP(pChartPath, "c", ".", "Chart path")
+	rootCmd.Flags().StringP(pValueFile, "f", "./values-example.yaml", "values files")
+	rootCmd.Flags().String(pStaticPath, "", "statics path files")
+	rootCmd.Flags().StringP(pPort, "p", "8085", "HTTP Port used")
 	return rootCmd
 }
 
 func Execute() {
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	if err := getRootCmd().Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "There was an error while executing your CLI '%s'", err)
+		log.Error().Err(err).Msg("There was an error while executing your CLI")
 		os.Exit(1)
 	}
 }
