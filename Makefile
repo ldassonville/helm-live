@@ -39,7 +39,7 @@ deps: ## get the golang dependencies in the vendor folder
 .PHONY: build-go
 build-go: ##  build the executable and set the version
 	go generate ./...
-	go build -o helm-live -tags=jsoniter ./cmd/live
+	go build -o helm-live -ldflags="-w -s" ./cmd/live
 
 .PHONY: build-ui
 build-ui: ##  build the statics web files
