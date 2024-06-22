@@ -99,7 +99,9 @@ func (sr *Renderer) Render(ctx context.Context, rendererConfig *RendererConfig) 
 
 	vals := values.Options{}
 
-	vals.ValueFiles = append(vals.ValueFiles, rendererConfig.ValuesFile)
+	if rendererConfig.ValuesFile != "" {
+		vals.ValueFiles = append(vals.ValueFiles, rendererConfig.ValuesFile)
+	}
 
 	if err = os.Chdir(chartPath); err != nil {
 		return builder.

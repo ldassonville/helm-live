@@ -53,9 +53,12 @@ func isSchemaPathValid(path string) bool {
 	return true
 }
 
+// isValuePathValid checks if the value file provided is valid
 func isValuePathValid(valueFile string) bool {
-	_, error := os.Stat(valueFile)
-	if os.IsNotExist(error) {
+
+	// Check the value existancy
+	_, err := os.Stat(valueFile)
+	if os.IsNotExist(err) {
 		log.Error().Msgf("Values file %s does not exist", valueFile)
 		return false
 	}
@@ -113,9 +116,13 @@ func getRootCmd() *cobra.Command {
 			}
 
 			_ = viper.BindPFlag(pValueFile, cmd.Flags().Lookup(pValueFile))
-			valueFile := getAbsolutePath(viper.GetString(pValueFile))
-			if !isValuePathValid(valueFile) {
-				os.Exit(1)
+			valueFile := viper.GetString(pValueFile)
+			if valueFile != "" {
+				// If value file is defined, check if it exists
+				valueFile = getAbsolutePath(valueFile)
+				if !isValuePathValid(valueFile) {
+					os.Exit(1)
+				}
 			}
 
 			_ = viper.BindPFlag(pStaticPath, cmd.Flags().Lookup(pStaticPath))
@@ -158,7 +165,7 @@ func getRootCmd() *cobra.Command {
 
 	rootCmd.Flags().StringP(pSchemaPath, "s", "./catalog-crds-json-schema/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json", "schemas path ")
 	rootCmd.Flags().StringP(pChartPath, "c", ".", "Chart path")
-	rootCmd.Flags().StringP(pValueFile, "f", "./values-example.yaml", "values files")
+	rootCmd.Flags().StringP(pValueFile, "f", "", "values files")
 	rootCmd.Flags().String(pStaticPath, "", "statics path files")
 	rootCmd.Flags().StringP(pPort, "p", "8085", "HTTP Port used")
 	return rootCmd
