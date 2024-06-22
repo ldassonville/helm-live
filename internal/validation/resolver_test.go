@@ -2,29 +2,58 @@ package validation
 
 import (
 	"context"
-	v12 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	crdv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/rs/zerolog/log"
+	"github.com/sirupsen/logrus"
+	extensioncs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
+	"path/filepath"
+	"testing"
 )
 
-type Resolver struct {
-	crdItf crdv1.CustomResourceDefinitionInterface
+func GetkubeConfig() (*rest.Config, error) {
+	var config *rest.Config
+	var err error
+
+	var home = homedir.HomeDir()
+
+	// Initialize Kubernetes client
+	config, err = rest.InClusterConfig()
+	if err == nil {
+		return config, nil
+	}
+
+	configPath := filepath.Join(home, ".kube/config")
+	log.Info().Msgf("loading kube config from : %v", configPath)
+
+	logrus.Infof("loading kube config: %s", configPath)
+
+	config, err = clientcmd.BuildConfigFromFlags("", configPath)
+	if err != nil {
+		logrus.Fatalf("Error creating dynamic client: %v", err)
+	}
+
+	config.TLSClientConfig = rest.TLSClientConfig{
+		Insecure: true,
+	}
+
+	return config, nil
 }
 
-func (r *Resolver) Resolve(ctx context.Context, group, version, kind string) (*v12.CustomResourceDefinition, error) {
-
-	listOptions := v1.ListOptions{}
-	list, err := r.crdItf.List(ctx, listOptions)
+func TestResolveCRD(t *testing.T) {
+	restConfig, err := GetkubeConfig()
 	if err != nil {
-		return nil, err
+		logrus.Fatal("Error getting config", err)
 	}
+	k8sClientSet, err := extensioncs.NewForConfig(restConfig)
 
-	for _, crd := range list.Items {
-		if crd.Spec.Group == group && crd.Spec.Names.Kind == kind {
-			return &crd, nil
-		}
+	resolver := NewResolver(k8sClientSet.ApiextensionsV1().CustomResourceDefinitions())
+
+	crd, err := resolver.Resolve(context.TODO(), "argoproj.io", "Application")
+
+	if crd == nil {
+		t.Failed()
 	}
-
-	return nil, nil
 
 }
