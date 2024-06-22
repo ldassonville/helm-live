@@ -1,0 +1,108 @@
+.badge {
+
+    border-radius: 4px;
+    padding: 2px 5px;
+    background-color: transparent;
+    color: #636c76;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: solid 1px #d0d7de;
+    margin: auto 3px;
+
+
+    &.badge-primary {
+        background-color: rgb(44 43 151 / 73%);
+        border-color: #0d1160;
+        color: #FFF;
+
+    }
+}
+
+
+.collapse-panel {
+
+
+    margin: 0px 15px;
+    padding: 7px 7px 0px 7px;
+
+
+    .desc {
+        margin-left: 20px;
+        padding: 10px 0px 5px 0;
+        white-space: pre-wrap;
+        text-wrap: wrap;
+
+        &.no-desc {
+            color: #a5aeb6;
+            font-size: 0.8rem;
+        }
+    }
+
+
+    .constraints {
+        margin-left: 20px;
+        margin-top: 10px;
+
+        .constraint {
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+    }
+
+    &.collapsed {
+
+        .collapse-header::before {
+            content: '\f5d2';
+            font-family: 'Material Symbols Outlined';
+            font-size: 1.2rem;
+        }
+    }
+
+
+    .collapse-header {
+
+        &::before {
+            content: '\e7cd';
+            font-family: 'Material Symbols Outlined';
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+
+        color: #384c5f;
+        font-weight: 500;
+        padding: 0 0 10px 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+
+        .property-name {
+            font-weight: 600;
+        }
+    }
+
+    .collapse-content {
+        border-left: solid 1px #bababc;
+        margin-left: 10px;
+    }
+
+
+    &.mode-inline {
+        margin: 0;
+
+        &:first-child > .collapse-header {
+            display: none;
+           // border: solid red 1px
+        }
+
+        &:first-child > .collapse-content{
+
+            border-left: none;
+            margin-left: 0;
+        }
+
+        .root {
+            border: none;
+        }
+    }
+
+}

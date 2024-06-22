@@ -1,0 +1,8 @@
+Schemas :
+<select (change)="selectSchema($event)">
+    <option *ngFor="let schemaUrl of schemasUrls" [value]="schemaUrl">{{schemaUrl}}</option>
+</select>
+
+@if (schema){
+<app-property-viewer [file]="schemaUrl" [mode]="'inline'" [collapsed]="false" [root]="true" [name]="'root'" [property]="schema"></app-property-viewer>
+}

@@ -1,0 +1,21 @@
+@if( false ){
+<div style="font-weight: 600;">Resolved : </div>
+<div class="explaination-wrapper">
+    <div>File : {{ file}}</div>
+    <div>Ref : {{ ref }}</div>
+    <div>ResolvedURL : {{ absoluteUrl }}</div>
+</div>
+<div><code>{{ schema | json}}</code></div>
+<div><code>{{ target | json}}</code></div>
+}
+
+@if ( schema) {
+    <app-property-viewer  
+        [mode]="'inline'"
+        [file]="absoluteUrl"
+        [collapsed]="false" 
+        [root]="false" 
+        [name]="ref" 
+        [property]="target">
+    </app-property-viewer>
+}

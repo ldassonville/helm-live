@@ -15,16 +15,14 @@
           </div>
           @if( isSelectedSource(source.source)){
             @for (manifest of source.manifests; track manifest.name) {
-            <li (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)"
-                [class.yaml-error]="!manifest.isYamlValid"
+            <li [class.yaml-error]="!manifest.isYamlValid"
                 [class.active]="isSelectedManifest(manifest.group, manifest.kind, manifest.version, manifest.name)"
                 class="kubeconform-{{manifest.kubeConformValidation?.status}}">
 
-
-                <span class="manifest-name">
-                    {{manifest.name}}
-                </span>
-                <span class="kind">{{manifest.kind}}</span>
+              <span class="manifest-name" (click)="onSelectManifest(manifest.group, manifest.kind, manifest.version, manifest.name)">
+                {{manifest.name}}
+              </span>
+              <span class="kind" (click)="showKindDetail(manifest)">{{manifest.kind}}</span>
             </li>
             }
           }
@@ -70,6 +68,9 @@
   </div>
 </div>
 
+<app-sliding-panel  [(visible)]="showResourceDetailPanel" [title]="'Resource detail'">
+  <app-schema-viewer [gvk]="selectedGVK" ></app-schema-viewer>
+</app-sliding-panel>
 
 
 

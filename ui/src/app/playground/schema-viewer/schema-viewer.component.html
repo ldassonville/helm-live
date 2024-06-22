@@ -1,0 +1,17 @@
+@if (schema){
+  <app-property-viewer
+      [file]="schemaUrl"
+      [property]="schema"
+      [mode]="'inline'"
+      [collapsed]="false"
+      [root]="true"
+      [name]="'root'"
+  ></app-property-viewer>
+}
+
+
+@else {
+  <div class="alert alert-warning" role="alert">
+    No schema available for {{gvk?.group}}  {{gvk?.version}}  {{gvk?.kind}}
+  </div>
+}

@@ -1,0 +1,67 @@
+
+.drawer {
+
+  .content{
+
+    box-sizing: border-box;
+    background-color: white;
+    position: fixed;
+    overflow-y: scroll;
+    right: 0;
+    // top: 0;
+    width: 80%;
+    bottom: 0;
+    padding: 24px;
+    height: 100%;
+    box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.1);
+    z-index: 8;
+    transform: translateX(100%);
+    transform-origin: right;
+    transition: transform 0.42s ease, max-height 0.42s 0.13s;
+
+    .header{
+      height: 30px;
+      text-align: right;
+      background-color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items : center;
+      margin-bottom: 20px;
+
+      .title{
+        font-size: 1.3rem;
+        font-weight: 4  00;
+      }
+
+      .close{
+        font-size: 25px;
+        &:after{
+          display: inline-block;
+          content: "\00d7"; /* This will render the 'X' */
+          font-size: 35px;
+          padding: 0;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+
+
+
+  &.slidein {
+
+    .content{
+      transform: translateX(0%);
+    }
+
+    .background{
+      z-index: 8;
+      background-color: #00000017;
+      position: fixed;
+      inset: 0;
+      transition: z-index .2s cubic-bezier(0,1,1,0), opacity .42s .35s ease;
+    }
+
+  }
+
+}

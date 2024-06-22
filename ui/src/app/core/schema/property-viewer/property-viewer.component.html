@@ -1,0 +1,129 @@
+@if (property) {
+<div class="collapse-panel mode-{{mode}}"  [class.collapsed]="collapsed">
+
+    @if (!root){
+        <div class="collapse-header material-symbols-outline" (click)="onClick()">
+
+            <span class="property-name">{{name}}</span>
+
+            @if(property.type){
+            <span class="badge">{{ property.type }}</span>
+            }
+
+            @if(required){
+            <span class="badge badge-primary">Required</span>
+            }
+        </div>
+    }
+
+
+    @if (!collapsed ){
+
+    <div class="collapse-content" [class.root]="root">
+
+
+        @if( property.description){
+        <div class="desc">{{property.description}} </div>
+        }@else {
+        <span class="desc no-desc">No description provided.</span>
+        }
+
+
+        <div class="constraints">
+            @if( property.pattern){
+            <div class="constraint">Pattern: <b>{{property.pattern}}</b></div>
+            }
+
+            @if( property.minLength && property.maxLength){
+            <div class="constraint">
+                Must be between <b>{{property.minLength}}</b> <b>{{property.maxLength}}</b> characters long
+            </div>
+            }@else {
+
+            @if( property.minLength ){
+            <div class="constraint">Must be at less <b>{{property.minLength}}</b> characters long</div>
+            }
+            @if( property.maxLength ){
+            <div class="constraint">Must be at most <b>{{property.maxLength}}</b> characters long</div>
+            }
+            }
+
+            @if (property.enum) {
+            <div class="constraint">Enum: {{property.enum}}</div>
+            }
+
+            @if ( property.default){
+            <div class="constraint">Default <b>{{property.default}}</b></div>
+            }
+
+        </div>
+
+        @if (property.$ref){
+            <app-ref-viewer [file]="file" [ref]="property.$ref"></app-ref-viewer>
+        }
+
+
+        @if (property.oneOf) {
+            @for( oneOfItem of property.oneOf; track oneOfItem) {
+                <app-property-viewer
+                    [file]="file"
+                    [name]="'(oneOfItem)'"
+                    [required]="false" 
+                    [property]="oneOfItem">
+                </app-property-viewer>
+            }  
+        }
+
+        @if (property.allOf) {
+            @for( allOfItem of property.allOf; track allOfItem) {
+                <app-property-viewer
+                    [mode]="'inline'"
+                    [file]="file"
+                    [name]="'(allOfItem)'"
+                    [required]="false" 
+                    [property]="allOfItem">
+                </app-property-viewer>
+            }  
+        }
+
+        @if (property.patternProperties){
+            @for( pkv of $any(property.patternProperties) | keyvalue ; track pkv.key) {
+                <app-property-viewer
+                    [file]="file"
+                    [name]="$any(pkv).key"
+                    [property]="$any(pkv).value">
+                </app-property-viewer>
+            }
+        }
+
+        @if( property.items){
+        
+            @for( pkv of $any(property.items).properties | keyvalue ; track pkv.key) {
+                <app-property-viewer
+                    [file]="file"
+                    [name]="$any(pkv).key"
+                    [required]="isRequired($any(pkv).key)" 
+                    [property]="$any(pkv).value">
+                </app-property-viewer>
+            }
+        }
+
+        @if( property.properties){
+
+            @if (property.additionnalProperties) {
+                <span class="material-symbols-outlined">variable_add</span>
+            }
+
+            @for( pkv of property.properties | keyvalue ; track pkv.key) {
+            <app-property-viewer 
+                [file]="file"
+                [required]="isRequired($any(pkv).key)" 
+                [name]="$any(pkv).key"
+                [property]="$any(pkv).value"></app-property-viewer>
+            }
+
+        }
+    </div>
+    }
+</div>
+}

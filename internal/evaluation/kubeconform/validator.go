@@ -39,6 +39,7 @@ func Validate(cfg config.Config) (validator.Validator, error) {
 	return v, nil
 }
 
+// GetSchemaPath returns the path to the schema file for a given resource kind and API version
 func GetSchemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {
 	normalisedVersion := k8sVersion
 	if normalisedVersion != "master" {

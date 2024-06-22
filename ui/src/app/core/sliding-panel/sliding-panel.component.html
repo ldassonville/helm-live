@@ -1,0 +1,12 @@
+<div class="drawer" [class.slidein]="visible">
+
+    <div (click)="closePanel()" class="background"></div>
+
+    <div class="content">
+        <div class="header">
+            <span class="title">{{title}}</span>
+            <a (click)="closePanel()" class="close" title="Close panel"></a>
+        </div>
+        <ng-content></ng-content>
+    </div>
+</div>
