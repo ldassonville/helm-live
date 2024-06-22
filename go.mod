@@ -7,7 +7,6 @@ require (
 	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/zerolog v1.32.0
-	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
@@ -17,7 +16,6 @@ require (
 	k8s.io/apiextensions-apiserver v0.29.0
 	k8s.io/apimachinery v0.29.3
 	k8s.io/cli-runtime v0.29.3
-	k8s.io/client-go v0.29.3
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -131,6 +129,7 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
@@ -167,6 +166,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.29.3 // indirect
 	k8s.io/apiserver v0.29.0 // indirect
+	k8s.io/client-go v0.29.3 // indirect
 	k8s.io/component-base v0.29.0 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20231010175941-2dd684a91f00 // indirect
