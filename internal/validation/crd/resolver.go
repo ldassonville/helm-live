@@ -1,4 +1,4 @@
-package validation
+package crd
 
 import (
 	"context"
@@ -7,11 +7,23 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Resolver struct {
+type Resolver interface {
+	Resolve(ctx context.Context, group, kind string) (*v12.CustomResourceDefinition, error)
+}
+
+func NewResolver(crdItf crdv1.CustomResourceDefinitionInterface) Resolver {
+	return &resolver{
+		crdItf: crdItf,
+	}
+}
+
+type resolver struct {
 	crdItf crdv1.CustomResourceDefinitionInterface
 }
 
-func (r *Resolver) Resolve(ctx context.Context, group, version, kind string) (*v12.CustomResourceDefinition, error) {
+// Resolve returns the CustomResourceDefinition for the given group and kind
+// return nil if not found
+func (r *resolver) Resolve(ctx context.Context, group, kind string) (*v12.CustomResourceDefinition, error) {
 
 	listOptions := v1.ListOptions{}
 	list, err := r.crdItf.List(ctx, listOptions)
@@ -24,7 +36,5 @@ func (r *Resolver) Resolve(ctx context.Context, group, version, kind string) (*v
 			return &crd, nil
 		}
 	}
-
 	return nil, nil
-
 }

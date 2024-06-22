@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/ldassonville/helm-live/internal/evaluation/helm"
 	"github.com/rs/zerolog/log"
 	"io"
 	"io/fs"
@@ -35,17 +34,16 @@ type Event struct {
 type ClientChan chan string
 
 // RunServer run the http server
-func RunServer(stream *Event, renderFnc func() *helm.Render, staticPath string, port int) {
+func RunServer(stream *Event, registersFnc []func(engine *gin.Engine), staticPath string, port int) {
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(cors.Default())
 
-	// Add one shoot render endpoint
-	router.GET("/_render", func(c *gin.Context) {
-		c.JSON(200, renderFnc())
-	})
+	for _, fnc := range registersFnc {
+		fnc(router)
+	}
 
 	// Add event-streaming render endpoint
 	router.GET("/stream", StreamHeadersMiddleware(), stream.serveHTTP(), func(c *gin.Context) {

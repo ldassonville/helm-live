@@ -1,0 +1,48 @@
+.dropdown-content a:hover {background-color: #ddd;}
+
+
+
+
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+
+  &:hover .dropdown-wrapper{
+    display: block;
+  }
+
+  .dropdown-wrapper{
+
+
+
+    background: transparent;
+    padding-top: 30px;
+    display: none;
+
+
+    .dropdown-content {
+
+      position: absolute;
+      background-color: #f9fbff;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+
+      a{
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
