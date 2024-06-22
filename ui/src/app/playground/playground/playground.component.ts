@@ -26,6 +26,8 @@ export class PlaygroundComponent{
   protected content = ""
   protected editor: any
 
+  protected sourcesSelection = new Map<string, boolean>(); 
+
   protected selection = {
     category: "values",
     identity: "mergedValues",
@@ -58,6 +60,20 @@ export class PlaygroundComponent{
   }
 
 
+
+  onSelectSource(source: string){
+    let selected = this.isSelectedSource(source)
+    this.sourcesSelection.set(source, !selected)
+  }
+
+  isSelectedSource(source: string): boolean{
+    let selected = true
+    if(this.sourcesSelection.has(source)){
+      selected = <boolean>this.sourcesSelection.get(source)
+    }
+    return selected
+  }
+
   onSelectManifest(group: string, kind: string, version: string, name: string) {
 
     this.selection = {
@@ -70,6 +86,15 @@ export class PlaygroundComponent{
     }
 
     this.selectItem(this.selection.category, this.selection.identity)
+  }
+
+  isSelectedManifest(group: string, kind: string, version: string, name: string) : boolean{
+    
+    if(this.selection.category !== "manifests"){
+      return false
+    }
+
+    return this.selection.identity == `${group}-${kind}-${version}-${name}`
   }
 
   onSelectValues(identifier: string) {

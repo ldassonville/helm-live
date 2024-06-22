@@ -11,12 +11,12 @@ export class RenderService {
     constructor(private http: HttpClient) { }
 
     render(): Observable<HelmRender> {
-      return this.http.get<HelmRender>("http://localhost:8085/_render")
+      return this.http.get<HelmRender>("/_render")
     }
 
   live(): Observable<HelmRender> {
 
-    const eventSource = new EventSource("http://localhost:8085/stream");
+    const eventSource = new EventSource("/stream");
 
     return new Observable(observer => {
       eventSource.addEventListener('message', event => {

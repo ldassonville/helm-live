@@ -2,12 +2,13 @@ package server
 
 import (
 	"embed"
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/ldassonville/helm-live/internal/evaluation/helm"
+	"github.com/rs/zerolog/log"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 )
 
@@ -15,8 +16,7 @@ import (
 //go:embed static/*
 var staticAssets embed.FS
 
-// It keeps a list of clients those are currently attached
-// and broadcasting events to those clients.
+// Event for broadcasting
 type Event struct {
 	// Events are pushed to this channel by the main events-gathering routine
 	Message chan string
@@ -34,22 +34,21 @@ type Event struct {
 // New event messages are broadcast to all registered client connection channels
 type ClientChan chan string
 
-func RunServer(stream *Event, renderFnc func() *helm.Render, staticPath string) {
+// RunServer run the http server
+func RunServer(stream *Event, renderFnc func() *helm.Render, staticPath string, port int) {
 
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
+	router.Use(cors.Default())
 
-	// Basic Authentication
-	authorized := router.Group("/")
-	authorized.Use(cors.Default())
-
-	authorized.GET("/_render", func(c *gin.Context) {
+	// Add one shoot render endpoint
+	router.GET("/_render", func(c *gin.Context) {
 		c.JSON(200, renderFnc())
 	})
 
-	// Authorized client can stream the event
-	// Add event-streaming headers
-	authorized.GET("/stream", HeadersMiddleware(), stream.serveHTTP(), func(c *gin.Context) {
+	// Add event-streaming render endpoint
+	router.GET("/stream", StreamHeadersMiddleware(), stream.serveHTTP(), func(c *gin.Context) {
 		v, ok := c.Get("clientChan")
 		if !ok {
 			return
@@ -68,15 +67,32 @@ func RunServer(stream *Event, renderFnc func() *helm.Render, staticPath string) 
 		})
 	})
 
-	subFS, _ := fs.Sub(staticAssets, "static")
-	// Parse Static files
-	router.StaticFS("/ui", http.FS(subFS))
+	// If statics file are provided, use it otherwise load embedded statics
+	var staticsFs http.FileSystem
+	if staticPath != "" {
+		staticsFs = http.Dir(staticPath)
+	} else {
+		subFS, err := fs.Sub(staticAssets, "static")
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to get statics file system")
+		}
+		staticsFs = http.FS(subFS)
+	}
 
-	router.Run(":8085")
+	// Add http client side statics
+	router.StaticFS("/ui", staticsFs)
+
+	log.Info().Msg("Watch mode enabled. Watching for file changes...")
+	log.Info().Msgf("Local:  http://localhost:%d/ui", port)
+
+	err := router.Run(fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to start server")
+	}
 
 }
 
-// Initialize event and Start procnteessing requests
+// NewServer Initialize event and Start processing requests
 func NewServer() (event *Event) {
 	event = &Event{
 		Message:       make(chan string),
@@ -98,13 +114,13 @@ func (stream *Event) listen() {
 		// Add new available client
 		case client := <-stream.NewClients:
 			stream.TotalClients[client] = true
-			log.Printf("Client added. %d registered clients", len(stream.TotalClients))
+			log.Debug().Msgf("Client added. %d registered clients", len(stream.TotalClients))
 
 		// Remove closed client
 		case client := <-stream.ClosedClients:
 			delete(stream.TotalClients, client)
 			close(client)
-			log.Printf("Removed client. %d registered clients", len(stream.TotalClients))
+			log.Debug().Msgf("Removed client. %d registered clients", len(stream.TotalClients))
 
 		// Broadcast message to client
 		case eventMsg := <-stream.Message:
@@ -134,7 +150,7 @@ func (stream *Event) serveHTTP() gin.HandlerFunc {
 	}
 }
 
-func HeadersMiddleware() gin.HandlerFunc {
+func StreamHeadersMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Content-Type", "text/event-stream")
 		c.Writer.Header().Set("Cache-Control", "no-cache")

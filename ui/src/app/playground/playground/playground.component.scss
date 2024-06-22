@@ -40,6 +40,14 @@
 
     .source{
       margin: 7px 0px 10px 0;
+      cursor: pointer;
+
+      &.active{
+      //  background-color: #c23f34;
+        &::before{
+           content: "> ";
+        }
+      }
 
       &::before{
         //content: "> ";
@@ -49,7 +57,7 @@
         display: inline-block;
         height: 15px;
         width: 15px;
-        background-size: 15px 15px;
+        background-size: 16px 15px;
         background-repeat: no-repeat;
         margin-right: 0.12rem;
       }
@@ -61,8 +69,15 @@
       margin: 0;
       li{
         font-size: 0.86rem;
-        padding-bottom: 10px;
+        padding: 5px 5px;
         cursor: pointer;
+
+        &.active{
+
+          span.manifest-name{
+            font-weight: bold;
+          }
+        }
 
         .kind{
           font-weight: bold;
@@ -78,7 +93,7 @@
           display: inline-block;
           height: 15px;
           width: 15px;
-          background-size: 15px 15px;
+          background-size: 16px 16px;
           background-repeat: no-repeat;
           margin-right: 0.12rem;
 

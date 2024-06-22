@@ -172,7 +172,11 @@ func (sr *Renderer) buildReleaseRender(release *release.Release, builder *render
 					if strings.Contains(kcv.ErrMsg, "could not find schema for ") {
 						locationMsg := "locations : \n"
 						for _, location := range config.SchemaLocations {
-							msgLoc, err := kubeconform.GetSchemaPath(location, manifest.Kind, manifest.GroupVersionKind.Version, "master", true)
+
+							var groupVersion = fmt.Sprintf("%s/%s", manifest.GroupVersionKind.Group, manifest.GroupVersionKind.Version)
+							groupVersion = strings.TrimPrefix(groupVersion, "/")
+
+							msgLoc, err := kubeconform.GetSchemaPath(location, manifest.Kind, groupVersion, "master", true)
 							if err != nil {
 								locationMsg += fmt.Sprintf(" - %s\n", err.Error())
 
