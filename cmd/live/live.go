@@ -3,13 +3,17 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"github.com/ldassonville/helm-live/internal/evaluation/helm"
+	"github.com/ldassonville/helm-live/internal/kubernetes"
 	"github.com/ldassonville/helm-live/internal/server"
+	"github.com/ldassonville/helm-live/internal/validation"
 	"github.com/ldassonville/helm-live/internal/workspace"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	extensioncs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"os"
 	"path/filepath"
 )
@@ -56,7 +60,7 @@ func isSchemaPathValid(path string) bool {
 // isValuePathValid checks if the value file provided is valid
 func isValuePathValid(valueFile string) bool {
 
-	// Check the value existancy
+	// Check the value existence
 	_, err := os.Stat(valueFile)
 	if os.IsNotExist(err) {
 		log.Error().Msgf("Values file %s does not exist", valueFile)
@@ -138,21 +142,41 @@ func getRootCmd() *cobra.Command {
 				Path: chartPath,
 			}
 
+			schemaLocations := []string{
+				schemaPath,
+				"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
+			}
+
 			renderConfig := &helm.RendererConfig{
-				SchemaLocations: []string{
-					schemaPath,
-					"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
-				},
-				ValuesFile: valueFile,
+				SchemaLocations: schemaLocations,
+				ValuesFile:      valueFile,
 			}
 
 			var httpServer = server.NewServer()
 			renderer := helm.NewRenderer(wks)
 
-			go server.RunServer(httpServer, func() *helm.Render {
-				return renderer.Render(context.Background(), renderConfig)
-			}, staticPath, port)
+			renderRegister := func(router *gin.Engine) {
+				// Add one shoot render endpoint
+				router.GET("/_render", func(c *gin.Context) {
 
+					render := renderer.Render(context.Background(), renderConfig)
+					c.JSON(200, render)
+				})
+			}
+
+			// Initialise the kubernetes client
+			restConfig, _ := kubernetes.GetkubeConfig()
+			k8sClientSet, _ := extensioncs.NewForConfig(restConfig)
+			crdClient := k8sClientSet.ApiextensionsV1().CustomResourceDefinitions()
+
+			validationHandler := validation.New(schemaPath, schemaLocations, crdClient)
+
+			var handlerRegisters = []func(engine *gin.Engine){
+				renderRegister, validationHandler.Register,
+			}
+			go server.RunServer(httpServer, handlerRegisters, staticPath, port)
+
+			// Web socket to notify the client when the workspace changes
 			wks.OnChangeFnc = func() {
 				render := renderer.Render(context.Background(), renderConfig)
 				strJson, _ := json.Marshal(render)

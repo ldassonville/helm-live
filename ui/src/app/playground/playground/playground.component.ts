@@ -11,7 +11,7 @@ import {FormsModule} from "@angular/forms";
   imports: [
     JsonPipe,
     MonacoEditorModule,
-    FormsModule
+    FormsModule,
   ],
   providers: [{ provide: NGX_MONACO_EDITOR_CONFIG, useValue: NGX_MONACO_EDITOR_CONFIG }],
   templateUrl: './playground.component.html',
@@ -22,11 +22,11 @@ export class PlaygroundComponent{
   public render: HelmRender = {info: {}}
 
   protected kubeConformValidation : KubeConformValidation|null = null
-  protected editorOptions = {theme: 'vs', language: 'yaml', fontSize: 13.5, automaticLayout: true, readOnly: true};
+  protected editorOptions = {theme: 'vs', language: 'yaml', fontSize: 12.5, automaticLayout: true, readOnly: true};
   protected content = ""
   protected editor: any
 
-  protected sourcesSelection = new Map<string, boolean>(); 
+  protected sourcesSelection = new Map<string, boolean>();
 
   protected selection = {
     category: "values",
@@ -89,7 +89,7 @@ export class PlaygroundComponent{
   }
 
   isSelectedManifest(group: string, kind: string, version: string, name: string) : boolean{
-    
+
     if(this.selection.category !== "manifests"){
       return false
     }

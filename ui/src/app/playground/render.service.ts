@@ -10,13 +10,14 @@ export class RenderService {
 
     constructor(private http: HttpClient) { }
 
+    baseUrl = ""//http://localhost:8085"
     render(): Observable<HelmRender> {
-      return this.http.get<HelmRender>("/_render")
+      return this.http.get<HelmRender>(`${this.baseUrl}/_render`)
     }
 
   live(): Observable<HelmRender> {
 
-    const eventSource = new EventSource("/stream");
+    const eventSource = new EventSource(`${this.baseUrl}/stream`);
 
     return new Observable(observer => {
       eventSource.addEventListener('message', event => {
