@@ -45,7 +45,7 @@
       &.active{
       //  background-color: #c23f34;
         &::before{
-           content: "> ";
+          background-image: url("../../../assets/folder_open.svg");
         }
       }
 
