@@ -156,9 +156,9 @@ func getRootCmd() *cobra.Command {
 			renderRegister := func(router *gin.Engine) {
 				// Add one shoot render endpoint
 				router.GET("/_render", func(c *gin.Context) {
-					c.JSON(200, func() *helm.Render {
-						return renderer.Render(context.Background(), renderConfig)
-					})
+
+					render := renderer.Render(context.Background(), renderConfig)
+					c.JSON(200, render)
 				})
 			}
 
