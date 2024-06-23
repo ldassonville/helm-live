@@ -163,13 +163,11 @@ func getRootCmd() *cobra.Command {
 			}
 
 			// Initialise the kubernetes client
-			restConfig, err := kubernetes.GetkubeConfig()
-			if err != nil {
-				log.Error().Err(err).Msg("Error getting kubernetes config")
-				os.Exit(1)
-			}
-			k8sClientSet, err := extensioncs.NewForConfig(restConfig)
-			validationHandler := validation.New(schemaPath, k8sClientSet.ApiextensionsV1().CustomResourceDefinitions())
+			restConfig, _ := kubernetes.GetkubeConfig()
+			k8sClientSet, _ := extensioncs.NewForConfig(restConfig)
+			crdClient := k8sClientSet.ApiextensionsV1().CustomResourceDefinitions()
+
+			validationHandler := validation.New(schemaPath, crdClient)
 
 			var handlerRegisters = []func(engine *gin.Engine){
 				renderRegister, validationHandler.Register,

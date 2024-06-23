@@ -21,28 +21,33 @@ func NewImporter(resolver Resolver) *Importer {
 	return i
 }
 
-func (i *Importer) Import(ctx context.Context, location string, group, version, kind string) error {
+func (i *Importer) Import(ctx context.Context, location string, group, kind string) error {
 
 	crd, err := i.resolver.Resolve(ctx, group, kind)
 	if err != nil {
 		return err
 	}
 
-	groupVersion := strings.TrimPrefix(fmt.Sprintf("%s/%s", group, version), "/")
+	if crd != nil {
+		for _, version := range crd.Spec.Versions {
+			groupVersion := strings.TrimPrefix(fmt.Sprintf("%s/%s", group, version.Name), "/")
 
-	msgLoc, err := kubeconform.GetSchemaPath(location, kind, groupVersion, "master", true)
-	if err != nil {
-		return err
-	}
-	data, err := json.Marshal(crd)
-	if err != nil {
-		return err
+			msgLoc, err := kubeconform.GetSchemaPath(location, kind, groupVersion, "master", true)
+			if err != nil {
+				return err
+			}
+			data, err := json.MarshalIndent(version.Schema.OpenAPIV3Schema, "", "  ")
+			if err != nil {
+				return err
+			}
+
+			err = i.writeFile(data, msgLoc)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	err = i.writeFile(data, msgLoc)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
