@@ -29,7 +29,6 @@ func (r *Registry) ImportSchema(ctx context.Context, group, kind string) error {
 		log.Err(err).Msgf("Failed to import schema for %s/%s", group, kind)
 		return err
 	}
-
 	return nil
 
 }

@@ -4,6 +4,7 @@ import {RenderService} from "../render.service";
 import { JsonPipe} from "@angular/common";
 import {MonacoEditorModule, NGX_MONACO_EDITOR_CONFIG} from "ngx-monaco-editor-v2";
 import {FormsModule} from "@angular/forms";
+import {ResourceMenuComponent} from "../resource-menu/resource-menu.component";
 
 @Component({
   selector: 'app-playground',
@@ -11,7 +12,8 @@ import {FormsModule} from "@angular/forms";
   imports: [
     JsonPipe,
     MonacoEditorModule,
-    FormsModule
+    FormsModule,
+    ResourceMenuComponent,
   ],
   providers: [{ provide: NGX_MONACO_EDITOR_CONFIG, useValue: NGX_MONACO_EDITOR_CONFIG }],
   templateUrl: './playground.component.html',

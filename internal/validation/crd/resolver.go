@@ -21,6 +21,8 @@ type resolver struct {
 	crdItf crdv1.CustomResourceDefinitionInterface
 }
 
+// Resolve returns the CustomResourceDefinition for the given group and kind
+// return nil if not found
 func (r *resolver) Resolve(ctx context.Context, group, kind string) (*v12.CustomResourceDefinition, error) {
 
 	listOptions := v1.ListOptions{}
