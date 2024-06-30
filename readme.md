@@ -13,7 +13,7 @@ And you simply validate that the templating worked well but not that the resulti
 Helm live will process to :
  - A live rendering of you chart
  - Resource live validation using kubeconform
-
+ - Explorer the resources schema
 
 ## Usage
 
